@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use super::error::AppError;
 use super::DB_NAME;
+
 use anyhow::anyhow;
 use axum::routing::{delete, patch, post};
 use axum::{http::StatusCode, Router};
@@ -50,15 +51,25 @@ pub(crate) async fn associate(
     State(client): State<Arc<Client>>,
     Query(association): Query<ProductAssociation>,
 ) -> Result<StatusCode, AppError> {
-    let collection = client
+    let product_collection = client
         .database(DB_NAME)
         .collection::<Product>(PRODUCT_COLLECTION);
 
-    let filter = doc! {"owner": association.product};
+    let product_filter = doc! {"owner": association.product};
 
-    collection
+    let category_collection = client
+        .database(DB_NAME)
+        .collection::<crate::category::Category>(crate::category::CATEGORY_COLLECTION);
+    let category_filter = doc! {"owner": &association.category};
+
+    _ = category_collection
+        .find_one(category_filter, None)
+        .await?
+        .ok_or(anyhow!("Category not found: {}", &association.category))?;
+
+    product_collection
         .update_one(
-            filter,
+            product_filter,
             doc! {"$set": {"category": association.category}},
             None,
         )

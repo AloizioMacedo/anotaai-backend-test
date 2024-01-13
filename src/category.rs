@@ -15,13 +15,13 @@ use mongodb::{bson::doc, Client};
 
 use axum::extract::State;
 
-const CATEGORY_COLLECTION: &str = "category";
+pub(crate) const CATEGORY_COLLECTION: &str = "category";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Category {
     title: String,
     description: String,
-    owner: String, // Owner ID
+    pub(crate) owner: String, // Owner ID
 }
 
 #[debug_handler]
