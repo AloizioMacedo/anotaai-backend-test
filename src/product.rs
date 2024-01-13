@@ -18,11 +18,11 @@ pub(crate) const PRODUCT_COLLECTION: &str = "product";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Product {
-    title: String,
-    description: String,
-    price: u32,
-    category: String,
-    owner: String,
+    pub(crate) title: String,
+    pub(crate) description: String,
+    pub(crate) price: u32,
+    pub(crate) category: String,
+    pub(crate) owner: String,
 }
 
 pub(crate) async fn product(
@@ -91,7 +91,7 @@ pub(crate) async fn delete_product(
         .database(DB_NAME)
         .collection::<Product>(PRODUCT_COLLECTION);
 
-    let filter = doc! {"owner": product_name.product};
+    let filter = doc! {"title": product_name.product};
 
     collection.delete_one(filter, None).await?;
 

@@ -20,8 +20,8 @@ pub(crate) const CATEGORY_COLLECTION: &str = "category";
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Category {
     pub(crate) title: String,
-    description: String,
-    owner: String,
+    pub(crate) description: String,
+    pub(crate) owner: String,
 }
 
 #[debug_handler]
@@ -54,7 +54,7 @@ pub(crate) async fn delete_category(
         .database(DB_NAME)
         .collection::<Category>(CATEGORY_COLLECTION);
 
-    let filter = doc! {"owner": category.category};
+    let filter = doc! {"title": category.category};
 
     collection.delete_one(filter, None).await?;
 
