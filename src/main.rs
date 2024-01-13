@@ -1,7 +1,9 @@
+mod category;
 mod error;
 mod product;
 
-use axum::{routing::get, routing::post, Router};
+use axum::routing::{get, post, put};
+use axum::Router;
 use mongodb::options::{ClientOptions, Credential};
 use mongodb::Client;
 
@@ -26,6 +28,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/product", post(product::product))
+        .route("/product/associate", put(product::associate))
+        .route("/category", post(category::category))
         .with_state(client);
 
     // run our app with hyper, listening globally on port 3000

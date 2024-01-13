@@ -2,12 +2,11 @@ use super::error::AppError;
 use super::DB_NAME;
 use anyhow::anyhow;
 use axum::http::StatusCode;
-use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
 
 use axum::extract::Query;
 
-use mongodb::Client;
+use mongodb::{bson::doc, Client};
 
 use axum::extract::State;
 
@@ -19,10 +18,9 @@ pub(crate) struct ProductPut {
     description: String,
     price: u32,
     category: String,
-    owner: String,
+    owner: String, // Owner ID
 }
 
-#[debug_handler]
 pub(crate) async fn product(
     State(client): State<Client>,
     Query(product): Query<ProductPut>,
@@ -35,6 +33,33 @@ pub(crate) async fn product(
         .insert_one(product, None)
         .await
         .map_err(|e| anyhow!("Error: {e}"))?;
+
+    Ok(StatusCode::OK)
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct ProductAssociation {
+    product: String,
+    category: String,
+}
+
+pub(crate) async fn associate(
+    State(client): State<Client>,
+    Query(association): Query<ProductAssociation>,
+) -> Result<StatusCode, AppError> {
+    let collection = client
+        .database(DB_NAME)
+        .collection::<ProductPut>(PRODUCT_COLLECTION);
+
+    let filter = doc! {"owner": association.product};
+
+    collection
+        .update_one(
+            filter,
+            doc! {"$set": {"category": association.category}},
+            None,
+        )
+        .await?;
 
     Ok(StatusCode::OK)
 }
