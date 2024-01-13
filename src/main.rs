@@ -1,3 +1,4 @@
+mod catalog;
 mod category;
 mod error;
 mod product;
@@ -25,12 +26,11 @@ async fn main() {
 
     let client = Arc::new(Client::with_options(client_options).unwrap());
 
-    // build our application with a single route
     let app = Router::new()
         .nest("/product", product::get_product_routes(client.clone()))
-        .nest("/category", category::get_category_routes(client.clone()));
+        .nest("/category", category::get_category_routes(client.clone()))
+        .nest("/catalog", catalog::get_catalog_routes(client.clone()));
 
-    // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

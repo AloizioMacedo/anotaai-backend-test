@@ -14,7 +14,7 @@ use mongodb::{bson::doc, Client};
 
 use axum::extract::State;
 
-const PRODUCT_COLLECTION: &str = "product";
+pub(crate) const PRODUCT_COLLECTION: &str = "product";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Product {
