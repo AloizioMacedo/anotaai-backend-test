@@ -19,9 +19,9 @@ pub(crate) const CATEGORY_COLLECTION: &str = "category";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Category {
-    title: String,
+    pub(crate) title: String,
     description: String,
-    pub(crate) owner: String, // Owner ID
+    owner: String,
 }
 
 #[debug_handler]

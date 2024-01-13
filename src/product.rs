@@ -22,7 +22,7 @@ pub(crate) struct Product {
     description: String,
     price: u32,
     category: String,
-    owner: String, // Owner ID
+    owner: String,
 }
 
 pub(crate) async fn product(
@@ -55,12 +55,12 @@ pub(crate) async fn associate(
         .database(DB_NAME)
         .collection::<Product>(PRODUCT_COLLECTION);
 
-    let product_filter = doc! {"owner": association.product};
+    let product_filter = doc! {"title": association.product};
 
     let category_collection = client
         .database(DB_NAME)
         .collection::<crate::category::Category>(crate::category::CATEGORY_COLLECTION);
-    let category_filter = doc! {"owner": &association.category};
+    let category_filter = doc! {"title": &association.category};
 
     _ = category_collection
         .find_one(category_filter, None)
