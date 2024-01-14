@@ -1,4 +1,4 @@
-/target
+api/target
 .env
 global-bundle.pem
 Makefile
