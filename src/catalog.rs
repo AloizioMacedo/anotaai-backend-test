@@ -4,7 +4,7 @@ use crate::{
     category::{Category, CATEGORY_COLLECTION},
     error::AppError,
     product::{Product, PRODUCT_COLLECTION},
-    DB_NAME,
+    Clients, DB_NAME,
 };
 use axum::routing::get;
 use axum::{debug_handler, Json};
@@ -13,7 +13,7 @@ use axum::{
     Router,
 };
 use futures::TryStreamExt;
-use mongodb::{bson::doc, Client};
+use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -53,10 +53,10 @@ impl From<Product> for StreamlinedProduct {
 
 #[debug_handler]
 pub(crate) async fn catalog(
-    State(client): State<Arc<Client>>,
+    State(client): State<Arc<Clients>>,
     Query(owner): Query<Owner>,
 ) -> Result<Json<Catalog>, AppError> {
-    let db = client.database(DB_NAME);
+    let db = client.mongo_client.database(DB_NAME);
     let Owner { owner } = owner;
 
     let product_collection = db.collection::<Product>(PRODUCT_COLLECTION);
@@ -93,8 +93,6 @@ pub(crate) async fn catalog(
     Ok(Json(Catalog { owner, catalog }))
 }
 
-pub(crate) fn get_catalog_routes(mongodb_client: Arc<Client>) -> Router {
-    Router::new()
-        .route("/", get(catalog))
-        .with_state(mongodb_client)
+pub(crate) fn get_catalog_routes(clients: Arc<Clients>) -> Router {
+    Router::new().route("/", get(catalog)).with_state(clients)
 }

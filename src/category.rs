@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use super::error::AppError;
+use super::Clients;
 use super::DB_NAME;
 use anyhow::anyhow;
 
@@ -11,13 +12,13 @@ use serde::{Deserialize, Serialize};
 
 use axum::extract::Query;
 
-use mongodb::{bson::doc, Client};
+use mongodb::bson::doc;
 
 use axum::extract::State;
 
 pub(crate) const CATEGORY_COLLECTION: &str = "category";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Category {
     pub(crate) title: String,
     pub(crate) description: String,
@@ -26,44 +27,82 @@ pub(crate) struct Category {
 
 #[debug_handler]
 pub(crate) async fn category(
-    State(client): State<Arc<Client>>,
-    Query(product): Query<Category>,
+    State(clients): State<Arc<Clients>>,
+    Query(category): Query<Category>,
 ) -> Result<StatusCode, AppError> {
-    let db = client.database(DB_NAME);
+    let db = clients.mongo_client.database(DB_NAME);
 
     let collection = db.collection::<Category>(CATEGORY_COLLECTION);
 
     collection
-        .insert_one(product, None)
+        .insert_one(&category, None)
         .await
         .map_err(|e| anyhow!("Error: {e}"))?;
+
+    let arn = &clients.aws_topic_arn;
+    let aws_client = &clients.aws_client;
+
+    _ = aws_client
+        .publish()
+        .topic_arn(arn)
+        .message(format!("owner: {}", category.owner))
+        .send()
+        .await
+        .map_err(|e| {
+            eprintln!(
+                "INFO: Could not publish when creating category {:?}: {e}",
+                category
+            )
+        });
 
     Ok(StatusCode::OK)
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct CategoryId {
     category: String,
 }
 
 pub(crate) async fn delete_category(
-    State(client): State<Arc<Client>>,
+    State(clients): State<Arc<Clients>>,
     Query(category): Query<CategoryId>,
 ) -> Result<StatusCode, AppError> {
-    let collection = client
+    let collection = clients
+        .mongo_client
         .database(DB_NAME)
         .collection::<Category>(CATEGORY_COLLECTION);
 
-    let filter = doc! {"title": category.category};
+    let filter = doc! {"title": &category.category};
 
-    collection.delete_one(filter, None).await?;
+    if let Some(cat_in_db) = collection.find_one(filter, None).await? {
+        let filter = doc! {"title": category.category};
+        collection.delete_one(filter, None).await?;
 
-    Ok(StatusCode::OK)
+        let arn = &clients.aws_topic_arn;
+        let aws_client = &clients.aws_client;
+
+        _ = aws_client
+            .publish()
+            .topic_arn(arn)
+            .message(format!("owner: {}", cat_in_db.owner))
+            .send()
+            .await
+            .map_err(|e| {
+                eprintln!(
+                    "INFO: Could not publish when deleting category {:?}: {e}",
+                    cat_in_db
+                )
+            });
+
+        Ok(StatusCode::OK)
+    } else {
+        Ok(StatusCode::NOT_FOUND)
+    }
 }
 
-pub(crate) fn get_category_routes(mongodb_client: Arc<Client>) -> Router {
+pub(crate) fn get_category_routes(clients: Arc<Clients>) -> Router {
     Router::new()
         .route("/", post(category))
         .route("/delete", delete(delete_category))
-        .with_state(mongodb_client)
+        .with_state(clients)
 }
