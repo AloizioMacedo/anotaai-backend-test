@@ -13,6 +13,7 @@ RUN cargo build --release
 RUN rm src/main.rs
 
 COPY src ./src
+COPY global-bundle.pem .
 
 RUN cargo build --release
 

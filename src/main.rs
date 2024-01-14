@@ -17,24 +17,32 @@ async fn main() {
     _ = dotenv();
 
     eprintln!("Starting server...");
-    let mongo_service = std::env::var("MONGO_SERVICE").unwrap();
-    let username = std::env::var("MONGO_USER").unwrap();
-    let password = std::env::var("MONGO_PASSWORD").unwrap();
 
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    let mut client_options = ClientOptions::parse(format!("mongodb://{mongo_service}:27017"))
-        .await
-        .unwrap();
+    let client_options = if let Ok(url) = std::env::var("MONGO_AWS") {
+        eprintln!("{url}");
+        ClientOptions::parse(url).await.unwrap()
+    } else {
+        let mongo_service = std::env::var("MONGO_SERVICE").unwrap();
+        let username = std::env::var("MONGO_USER").unwrap();
+        let password = std::env::var("MONGO_PASSWORD").unwrap();
 
-    client_options.credential = Some(
-        Credential::builder()
-            .username(username)
-            .password(password)
-            .build(),
-    );
+        let mut client_options = ClientOptions::parse(format!("mongodb://{mongo_service}:27017"))
+            .await
+            .unwrap();
+
+        client_options.credential = Some(
+            Credential::builder()
+                .username(username)
+                .password(password)
+                .build(),
+        );
+
+        client_options
+    };
 
     let client = Arc::new(Client::with_options(client_options).unwrap());
 
