@@ -20,5 +20,14 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
+  backend:
+    build: .
+    ports:
+      - 8080:3000
+    depends_on:
+      - mongo
+    environment:
+      MONGO_SERVICE: mongo
+
 volumes:
   postgres_data:
