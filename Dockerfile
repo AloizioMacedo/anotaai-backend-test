@@ -19,7 +19,10 @@ RUN cargo build --release
 
 # Production stage.
 FROM gcr.io/distroless/cc
-COPY --from=builder /app/target/release/ifood /app/ifood
 
 WORKDIR /app
+
+COPY --from=builder /app/target/release/ifood ifood
+COPY --from=builder /app/global-bundle.pem global-bundle.pem
+
 CMD ["./ifood"]
