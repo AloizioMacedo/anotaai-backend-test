@@ -29,7 +29,6 @@ async fn main() {
         .init();
 
     let client_options = if let Ok(url) = std::env::var("MONGO_AWS") {
-        eprintln!("{url}");
         ClientOptions::parse(url).await.unwrap()
     } else {
         let mongo_service = std::env::var("MONGO_SERVICE").unwrap();
