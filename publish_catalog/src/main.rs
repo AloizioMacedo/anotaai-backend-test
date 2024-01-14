@@ -21,7 +21,7 @@ struct Body {
 async fn get_catalog(base_url: &str, owner: &str) -> String {
     let client = reqwest::Client::new();
     let req = client
-        .get(base_url)
+        .get(format!("{base_url}/catalog"))
         .query(&[("owner", owner)])
         .build()
         .expect("Should be able to build request");
@@ -53,33 +53,31 @@ async fn function_handler(event: LambdaEvent<SqsEvent>) -> Result<(), Error> {
     if let Some(record) = event.payload.records.iter().last() {
         if let Some(body) = &record.body {
             let body: Body = serde_json::from_str(body)
-                .unwrap_or_else(|_| panic!("Body should be parseable, but is {body}"));
+                .unwrap_or_else(|_| panic!("ERROR: Body should be parseable, but is {body}"));
 
             let message = body.message;
 
             if let Some((_, owner)) = message.split_once(": ") {
                 let catalog = get_catalog(&base_url, owner).await;
 
-                std::fs::write(format!("/tmp/{}_catalog.json", owner), catalog).unwrap();
+                std::fs::write(format!("/tmp/{owner}_catalog.json"), catalog).unwrap();
 
                 upload_object(
                     &client,
                     &bucket_name,
-                    &format!("/tmp/{}_catalog.json", owner),
-                    owner,
+                    &format!("/tmp/{owner}_catalog.json"),
+                    &format!("{owner}.json"),
                 )
                 .await
                 .expect("Should be able to upload object");
             } else {
-                eprintln!(
-                    "ERROR: Message {message} does not correspond to format 'owner: <owner>'"
-                );
+                eprintln!("INFO: Message {message} does not correspond to format 'owner: <owner>'");
             }
         } else {
-            eprintln!("No body in record {record:?}");
+            eprintln!("INFO: No body in record {record:?}");
         }
     } else {
-        eprintln!("No record in event {event:?}");
+        eprintln!("INFO: No record in event {event:?}");
     }
 
     // Extract some useful information from the request
