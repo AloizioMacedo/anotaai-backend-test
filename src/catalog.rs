@@ -26,12 +26,29 @@ pub(crate) struct Catalog {
 pub(crate) struct CatalogEntry {
     category_title: String,
     category_description: String,
-    items: Vec<Product>,
+    items: Vec<StreamlinedProduct>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Owner {
     owner: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct StreamlinedProduct {
+    title: String,
+    description: String,
+    price: u32,
+}
+
+impl From<Product> for StreamlinedProduct {
+    fn from(product: Product) -> Self {
+        Self {
+            title: product.title,
+            description: product.description,
+            price: product.price,
+        }
+    }
 }
 
 #[debug_handler]
@@ -60,16 +77,16 @@ pub(crate) async fn catalog(
         let filter = doc! {"owner": &owner, "category": &category.title};
 
         let mut product_cursor = product_collection.find(filter, None).await?;
-        let mut products = Vec::new();
+        let mut items = Vec::new();
 
         while let Some(product) = product_cursor.try_next().await? {
-            products.push(product);
+            items.push(product.into());
         }
 
         catalog.push(CatalogEntry {
             category_title: category.title.clone(),
             category_description: category.description.clone(),
-            items: products,
+            items,
         });
     }
 
