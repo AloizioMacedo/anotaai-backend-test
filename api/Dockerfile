@@ -22,7 +22,7 @@ FROM gcr.io/distroless/cc
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/ifood ifood
+COPY --from=builder /app/target/release/anotaai anotaai
 COPY --from=builder /app/global-bundle.pem global-bundle.pem
 
-CMD ["./ifood"]
+CMD ["./anotaai"]
