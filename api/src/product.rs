@@ -50,7 +50,7 @@ pub(crate) async fn product(
         .await
         .map_err(|e| {
             eprintln!(
-                "INFO: Could not publish when creating product {:?}: {e}",
+                "INFO: Could not publish to SNS when creating product {:?}: {e}",
                 product
             )
         });
@@ -105,7 +105,7 @@ pub(crate) async fn associate(
         .await
         .map_err(|e| {
             eprintln!(
-                "INFO: Could not publish when trying to associate category {:?}: {e}",
+                "INFO: Could not publish to SNS when trying to associate category {:?}: {e}",
                 cat
             )
         });
@@ -144,7 +144,7 @@ pub(crate) async fn delete_product(
             .await
             .map_err(|e| {
                 eprintln!(
-                    "INFO: Could not publish when deleting category {:?}: {e}",
+                    "INFO: Could not publish to SNS when deleting product {:?}: {e}",
                     product_in_db
                 )
             });

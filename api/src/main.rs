@@ -22,13 +22,15 @@ async fn build_mongo_client() -> Client {
     let client_options = if let Ok(url) = std::env::var("MONGO_AWS") {
         ClientOptions::parse(url).await.unwrap()
     } else {
-        let mongo_service = std::env::var("MONGO_SERVICE").unwrap();
-        let username = std::env::var("MONGO_USER").unwrap();
-        let password = std::env::var("MONGO_PASSWORD").unwrap();
+        let mongo_service =
+            std::env::var("MONGO_SERVICE").expect("'MONGO_SERVICE' env variable is not set");
+        let username = std::env::var("MONGO_USER").expect("'MONGO_USER' env variable is not set");
+        let password =
+            std::env::var("MONGO_PASSWORD").expect("'MONGO_PASSWORD' env variable is not set");
 
         let mut client_options = ClientOptions::parse(format!("mongodb://{mongo_service}:27017"))
             .await
-            .unwrap();
+            .expect("Should be able to connect to MongoDB");
 
         client_options.credential = Some(
             Credential::builder()
@@ -62,7 +64,10 @@ async fn main() {
     let mongo_client = build_mongo_client().await;
     let aws_client = build_aws_sns_client().await;
 
-    let aws_topic_arn = std::env::var("AWS_TOPIC_ARN").unwrap_or("".to_string());
+    let aws_topic_arn = std::env::var("AWS_TOPIC_ARN").unwrap_or_else(|_| {
+        eprintln!("AWS_TOPIC_ARN env variable is not set. Using empty string. This will cause SNS to not be used.");
+        "".to_string()
+    });
 
     let clients = Arc::new(Clients {
         mongo_client,
