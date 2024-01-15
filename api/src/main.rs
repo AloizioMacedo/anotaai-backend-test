@@ -18,16 +18,7 @@ struct Clients {
     aws_topic_arn: String,
 }
 
-#[tokio::main]
-async fn main() {
-    _ = dotenv();
-
-    eprintln!("Starting server...");
-
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
-
+async fn build_mongo_client() -> Client {
     let client_options = if let Ok(url) = std::env::var("MONGO_AWS") {
         ClientOptions::parse(url).await.unwrap()
     } else {
@@ -49,10 +40,27 @@ async fn main() {
         client_options
     };
 
-    let mongo_client = Client::with_options(client_options).unwrap();
+    Client::with_options(client_options).unwrap()
+}
 
+async fn build_aws_sns_client() -> aws_sdk_sns::Client {
     let config = aws_config::load_from_env().await;
-    let aws_client = aws_sdk_sns::Client::new(&config);
+
+    aws_sdk_sns::Client::new(&config)
+}
+
+#[tokio::main]
+async fn main() {
+    _ = dotenv();
+
+    eprintln!("Starting server...");
+
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
+
+    let mongo_client = build_mongo_client().await;
+    let aws_client = build_aws_sns_client().await;
 
     let aws_topic_arn = std::env::var("AWS_TOPIC_ARN").unwrap_or("".to_string());
 
