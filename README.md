@@ -68,3 +68,13 @@ deployment:
 
 - BASE_URL: URL of the API.
 - BUCKET_NAME: Name of the S3 bucket to use for the catalogs.
+
+## Next steps (in theory)
+
+This is just a list of things that were left undone, but I'll probably
+not work on since the experiment already served its purpose.
+
+- [ ] Separate the security groups in AWS in a cleaner way.
+- [ ] Use IDs for the identification of products/categories instead
+      of titles.
+- [ ] Add tests for the API.
