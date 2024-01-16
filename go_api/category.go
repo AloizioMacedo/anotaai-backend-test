@@ -58,3 +58,8 @@ func DeleteCategory(c echo.Context) error {
 
 	return c.NoContent(http.StatusOK)
 }
+
+func CreateCategorySubRoute(group *echo.Group) {
+	group.POST("", PostCategory)
+	group.DELETE("/delete", DeleteCategory)
+}

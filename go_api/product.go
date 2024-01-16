@@ -86,3 +86,9 @@ func AssociateProduct(c echo.Context) error {
 
 	return c.NoContent(http.StatusOK)
 }
+
+func CreateProductSubRoute(group *echo.Group) {
+	group.POST("", PostProduct)
+	group.DELETE("/delete", DeleteProduct)
+	group.PATCH("/associate", AssociateProduct)
+}

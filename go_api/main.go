@@ -38,11 +38,9 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.POST("/product", PostProduct)
-	e.PATCH("/product/associate", AssociateProduct)
-	e.DELETE("/product/delete", DeleteProduct)
-	e.POST("/category", PostCategory)
-	e.DELETE("/category/delete", DeleteCategory)
+	CreateProductSubRoute(e.Group("/product"))
+	CreateCategorySubRoute(e.Group("/category"))
+
 	e.GET("/catalog", GetCatalog)
 
 	e.Logger.Fatal(e.Start(":8080"))
