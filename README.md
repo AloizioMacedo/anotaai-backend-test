@@ -8,6 +8,11 @@ The core intent of the repository was self-learning, specifically
 with regards to using the AWS SDK for Rust, which seems to be
 pretty mature!
 
+There is also an implementation in Go. However, I only implemented
+a local version for it assuming the DB to be at
+"mongodb://root:example@localhost:27017", which should be the case
+if you lift the db using docker compose in the root of the project.
+
 ## High-level Description
 
 The service is intended to provide some endpoints for creation of
@@ -40,6 +45,8 @@ Then just run
 cargo run -r
 ```
 
+in the [api](api) directory.
+
 And use the URLs <http://localhost:3000/{endpoint}>.
 
 #### Running in AWS
@@ -63,6 +70,8 @@ it with [cargo lambda](https://github.com/cargo-lambda/cargo-lambda):
 cargo lambda build --release && cargo lambda deploy
 ```
 
+in the [publish_catalog](publish_catalog) directory.
+
 You need the following environment variables for your Lambda
 deployment:
 
@@ -78,3 +87,4 @@ not work on since the experiment already served its purpose.
 - [ ] Use IDs for the identification of products/categories instead
       of titles.
 - [ ] Add tests for the API.
+- [ ] Add Go version of deployment to AWS.
