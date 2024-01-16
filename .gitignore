@@ -3,3 +3,4 @@ publish_catalog/target
 .env
 global-bundle.pem
 Makefile
+tmp
